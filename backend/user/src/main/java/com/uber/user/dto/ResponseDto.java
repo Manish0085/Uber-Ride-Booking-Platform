@@ -1,9 +1,27 @@
 package com.uber.user.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(
+        description = "Response after user registration or any auth operation"
+)
 public class ResponseDto {
 
+    @Schema(
+            description = "Response message",
+            example = "User registered successfully"
+    )
     private String message;
+
+    @Schema(
+            description = "JWT token issued for the user",
+            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
     private String token;
+
+    @Schema(
+            description = "Details of the registered user"
+    )
     private UserDTO user;
 
     public ResponseDto() {}
@@ -13,7 +31,6 @@ public class ResponseDto {
         this.token = token;
         this.user = user;
     }
-
 
     public String getMessage() {
         return message;
