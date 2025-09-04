@@ -1,5 +1,6 @@
 package com.uber.user.filter;
 
+import com.uber.user.repo.BlacklistedTokenRepo;
 import com.uber.user.service.impl.MyUserDetailsService;
 import com.uber.user.util.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -26,23 +27,40 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private BlacklistedTokenRepo blacklistedTokenRepo;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")){
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+
+            if (blacklistedTokenRepo.existsByToken(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token is blacklisted. Please login again.");
+                return; // 🚫 stop filter chain
+            }
+
             username = jwtUtil.extractUserId(token);
         }
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
-            if(jwtUtil.validateToken(token, userDetails)){
+            UserDetails userDetails =
+                    context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
+
+            if (jwtUtil.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
