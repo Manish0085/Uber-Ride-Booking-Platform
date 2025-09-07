@@ -5,7 +5,7 @@ import com.uber.user.dto.UserDTO;
 
 public interface IAuthService {
 
-    public String register(UserDTO dto);
+    String register(UserDTO dto);
 
-    public String login(LoginDto dto);
+    String login(LoginDto dto);
 }
