@@ -1,0 +1,8 @@
+server:
+  port: 8090
+
+
+google:
+  maps:
+    api:
+      key: "AIzaSyBpRD2a8eN9fkU3UfjzI789z0oeIpAorOo"
